@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 from questions.models import Question, Answer, Rating
-from graphene import Argument, Boolean, String
+from graphene import Argument, Boolean, String, Int
 from django.db.models import Subquery, Count
 import graphene
 
@@ -30,6 +30,16 @@ class Query(graphene.ObjectType):
         QuestionNode,
         question=Argument(String)
     )
+    question = graphene.Field(
+        QuestionNode,
+        question_id=Argument(Int, required=True)
+    )
+
+    def resolve_question(self, info, question_id):
+        try:
+            return Question.objects.get(id=question_id)
+        except Question.DoesNotExist:
+            return None
 
     def resolve_questions(self, info, **kwargs):
         return Question.objects.filter(content__icontains=kwargs.get('question', ''))
