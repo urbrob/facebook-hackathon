@@ -13,11 +13,6 @@ class RatingNode(DjangoObjectType):
 
 
 class AnswerNode(DjangoObjectType):
-    created_by = graphene.Field(UserNode)
-    is_long = graphene.Boolean()
-    is_complex = graphene.Boolean()
-    is_science = graphene.Boolean()
-
     class Meta:
         model = Answer
         only_fields = ('id', 'title', 'url', 'created_by', 'created_at', 'is_long', 'is_complex', 'is_science')
@@ -32,7 +27,7 @@ class AnswerNode(DjangoObjectType):
         return self.is_science
 
     def resolve_created_by(self, info):
-        returns self.created_by
+        return self.created_by
 
 
 class QuestionNode(DjangoObjectType):
@@ -78,8 +73,31 @@ class CreateQuestion(graphene.Mutation):
         return CreateQuestion(question=question)
 
 
+class RatingTypes(graphene.Enum):
+    IS_LONG = Rating.IS_LONG
+    IS_SCIENCE = Rating.IS_SCIENCE
+    IS_COMPLEX = Rating.IS_COMPLEX
+
+
+class CreateRating(graphene.Mutation):
+    class Arguments:
+        rate = graphene.Boolean(required=True)
+        hash_id = graphene.String(required=True)
+        answer_id = graphene.Int(required=True)
+        rating_type = RatingTypes()
+
+    rating = graphene.Field(RatingNode)
+
+    def mutate(self, info, *arg, **kwargs):
+        user = User.objects.get(hash_id=kwargs['hash_id'])
+        answer = Answer.objects.get(id=kwargs['answer_id'])
+        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        return CreateRating(rating=rating)
+
+
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
+    create_rating = CreateRating.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
