@@ -26,4 +26,4 @@ class AnswerAdmin(admin.ModelAdmin):
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'rating_type', 'rate', 'answer')
+    list_display = ('id', 'rating_type', 'rate', 'user', 'answer')
