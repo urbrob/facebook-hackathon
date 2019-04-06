@@ -95,9 +95,26 @@ class CreateRating(graphene.Mutation):
         return CreateRating(rating=rating)
 
 
+class CreateAnswer(graphene.Mutation):
+    class Arguments:
+        title = graphene.String(required=True)
+        url = graphene.String(required=True)
+        question_id = graphene.Int(required=True)
+        hash_id = graphene.String(required=True)
+
+    answer = graphene.Field(AnswerNode)
+
+    def mutate(self, info, *arg, **kwargs):
+        user = User.objects.get(hash_id=kwargs['hash_id'])
+        question = Question.objects.get(id=kwargs['question_id'])
+        answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
+        return CreateAnswer(answer=answer)
+
+
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
     create_rating = CreateRating.Field()
+    create_answer = CreateAnswer.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
