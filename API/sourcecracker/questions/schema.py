@@ -1,7 +1,6 @@
 from graphene_django import DjangoObjectType
-from questions.models import Question, Answer, Rating
+from questions.models import Question, Answer, Rating, SourceEntry
 from graphene import Argument, Boolean, String, Int
-from django.db.models import Subquery, Count
 from accounts.models import User
 from accounts.schema import UserNode
 import graphene
@@ -13,15 +12,27 @@ class RatingNode(DjangoObjectType):
 
 
 class AnswerNode(DjangoObjectType):
+    url = String(user_hash=Argument(String))
+    is_visited = Boolean(user_hash=Argument(String, required=True))
+
     class Meta:
         model = Answer
-        only_fields = ('id', 'title', 'url', 'created_by', 'created_at', 'is_long', 'is_complex', 'is_science')
+        only_fields = ('id', 'title', 'url', 'created_by', 'created_at', 'is_long', 'is_complex', 'is_science', 'is_visited')
 
     def resolve_is_long(self, info):
         return self.is_long
 
     def resolve_is_complex(self, info):
         return self.is_complex
+
+    def resolve_url(self, info, **kwargs):
+        try:
+            return self.redirect_url(kwargs['user_hash'])
+        except KeyError:
+            return self.url
+
+    def resolve_is_visited(self, info, **kwargs):
+        return SourceEntry.objects.filter(user__hash_id=kwargs['user_hash'], answer=self)
 
     def resolve_is_science(self, info):
         return self.is_science
@@ -31,13 +42,18 @@ class AnswerNode(DjangoObjectType):
 
 
 class QuestionNode(DjangoObjectType):
-    answers = graphene.List(AnswerNode, is_long=Argument(Boolean), is_science=Argument(Boolean), is_complex=Argument(Boolean))
+    answers = graphene.List(AnswerNode, is_long=Argument(Boolean),
+                            is_science=Argument(Boolean), is_complex=Argument(Boolean),
+                            user=Argument(String))
 
     class Meta:
         model = Question
 
     def resolve_answers(self, info, *args, **kwargs):
-        return self.answer_set.all()
+        answers = self.answer_set.all()
+        for key, value in kwargs.items():
+            answers = filter(lambda x: getattr(x, key) == value, answers)
+        return answers
 
 
 class Query(graphene.ObjectType):
