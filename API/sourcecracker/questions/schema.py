@@ -32,7 +32,7 @@ class AnswerNode(DjangoObjectType):
         return self.is_science
 
     def resolve_created_by(self, info):
-        returns self.created_by
+        return self.created_by
 
 
 class QuestionNode(DjangoObjectType):
