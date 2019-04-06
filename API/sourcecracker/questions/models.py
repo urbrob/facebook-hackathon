@@ -35,7 +35,6 @@ class Rating(models.Model):
     )
     rating_type = models.CharField(choices=RATING_TYPES, max_length=32)
     rate = models.BooleanField(default=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
     created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="ratings", default=current_user)
     created_at = models.DateTimeField(auto_now_add=True)

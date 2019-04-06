@@ -9,7 +9,7 @@ class RatingNode(DjangoObjectType):
         model = Rating
 
 
-class AnswerpNode(DjangoObjectType):
+class AnswerNode(DjangoObjectType):
     class Meta:
         model = Answer
 
@@ -39,8 +39,32 @@ class CreateQuestion(graphene.Mutation):
         return CreateQuestion(question=question)
 
 
+class RatingTypes(graphene.Enum):
+    IS_LONG = Rating.IS_LONG
+    IS_SCIENCE = Rating.IS_SCIENCE
+    IS_COMPLEX = Rating.IS_COMPLEX
+
+
+class CreateRating(graphene.Mutation):
+    class Arguments:
+        rate = graphene.Boolean(required=True)
+        hash_id = graphene.String(required=True)
+        answer_id = graphene.Int(required=True)
+        rating_type = RatingTypes()
+
+    rating = graphene.Field(RatingNode)
+
+    def mutate(self, info, *arg, **kwargs):
+        user = User.objects.get(hash_id=kwargs['hash_id'])
+        answer = Answer.objects.get(answer_id=kwargs['answer_id'])
+        rating_type = Ra
+        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=Rating.IS_LONG)
+        return CreateRating(rating=rating)
+
+
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
+    create_rating = CreateRating.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
