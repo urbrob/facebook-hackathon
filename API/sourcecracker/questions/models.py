@@ -1,6 +1,7 @@
 from django.db import models
 from sourcecracker.utils import current_user
 from accounts.models import Group, User
+from django.urls import reverse
 
 
 class Question(models.Model):
@@ -22,6 +23,9 @@ class Answer(models.Model):
 
     def __str__(self):
         return f'{self.title} by {self.created_by} for {self.question.content}'
+
+    def redirect_url(self, user_hash):
+        return reverse('redirect', args=[self.id, user_hash])
 
     @property
     def is_long(self):
@@ -53,3 +57,9 @@ class Rating(models.Model):
 
     def __str__(self):
         return f'{self.created_by} rate {self.answer.title} as {self.rate}'
+
+
+class SourceEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=current_user)
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
