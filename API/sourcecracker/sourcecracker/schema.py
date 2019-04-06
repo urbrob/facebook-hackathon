@@ -8,4 +8,4 @@ class Query(accounts.schema.Query, questions.schema.Query):
 class Mutation(accounts.schema.Mutation, questions.schema.Mutation):
     pass
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=Mutation)
