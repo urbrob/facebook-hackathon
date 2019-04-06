@@ -93,6 +93,7 @@ class RatingTypes(graphene.Enum):
     IS_LONG = Rating.IS_LONG
     IS_SCIENCE = Rating.IS_SCIENCE
     IS_COMPLEX = Rating.IS_COMPLEX
+    IS_HELPFUL = Rating.IS_HELPFUL
 
 
 class CreateRating(graphene.Mutation):
@@ -123,7 +124,19 @@ class CreateAnswer(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         question = Question.objects.get(id=kwargs['question_id'])
+        sender_email = question.created_by.email
         answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
+
+        from django.core.mail import send_mail
+
+        send_mail(
+            'You\'ve got your answer!!',
+            'Hello, please, check your question: ' + str(kwargs['question_id']) + ' a new answer is awaiting',
+            'adka94@op.pl',
+            [sender_email],
+            fail_silently=False,
+        )
+
         return CreateAnswer(answer=answer)
 
 
