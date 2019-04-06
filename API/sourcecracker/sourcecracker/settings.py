@@ -25,7 +25,7 @@ SECRET_KEY = '+is4(g$tlu9*0uj9%$ypthy*^#ouou!x^g$w9&tc0xqs)s(j_v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,9 +37,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'graphene_django',
+
+    'accounts',
+    'questions',
 ]
 
+GRAPHENE = {
+    'SCHEMA': 'sourcecracker.schema.schema'
+
+}
+
+LOGIN_REDIRECT_URL = 'home'
+
+AUTH_USER_MODEL = 'accounts.User'
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,7 +81,8 @@ TEMPLATES = [
         },
     },
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ("POST", "GET", "OPTIONS")
 WSGI_APPLICATION = 'sourcecracker.wsgi.application'
 
 
@@ -118,3 +134,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.poczta.onet.pl'
+EMAIL_USE_SSL = True
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'adka94@op.pl'
+EMAIL_HOST_PASSWORD = 'KURWAmac123'
