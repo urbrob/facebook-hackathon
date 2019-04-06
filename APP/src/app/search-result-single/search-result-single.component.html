@@ -1,0 +1,16 @@
+<div class="wrapper">
+  <span class="title"><a target="_blank" href="{{result.answer.url}}">{{result.answer.title}}</a></span>
+  <mat-chip-list class="chips">
+    <mat-chip *ngIf="result.answer.isEasy">for dummies</mat-chip>
+    <mat-chip *ngIf="result.answer.isShort">Short</mat-chip>
+    <mat-chip *ngIf="result.answer.isComplex">Complex</mat-chip>
+
+    <mat-chip *ngIf="!result.answer.isEasy">sciency</mat-chip>
+    <mat-chip *ngIf="!result.answer.isShort">Long</mat-chip>
+    <mat-chip *ngIf="!result.answer.isComplex">Simple</mat-chip>
+
+  </mat-chip-list>
+  <a [routerLink]="['/question', result.question.id]" class="question-title title">
+    {{result.question.content}}
+  </a>
+</div>

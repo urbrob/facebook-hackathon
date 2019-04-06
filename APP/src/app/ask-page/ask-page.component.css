@@ -1,0 +1,33 @@
+.full-width{
+  width:100%;
+  font-size:2em;
+}
+.ask-button{
+  width:100%;
+}
+.cryt-list{
+  display:flex;
+}
+.inline-filter{
+  color:#C117B6;
+}
+.short-warning{
+  background-color: #C117B6;
+  color:white;
+
+  padding:10px;
+  margin:1em;
+}
+.cryt-list-single{
+  margin-left:2em;
+}
+.wrapper{
+  width:60%;
+  position: absolute;
+
+  top:50%;
+  transform: translateY(-50%);
+}
+.ask{
+  margin-top:2em;
+}

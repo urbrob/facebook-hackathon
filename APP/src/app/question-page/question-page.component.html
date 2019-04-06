@@ -1,0 +1,70 @@
+<section class="wrapper" *ngIf="downloaded">
+<h2>I need some info about</h2>
+  <h1 class="title-main">{{question.content}}</h1>
+<!--  <div class="question-date">{{question.createdAt | date}}</div>-->
+  <section class="form">
+
+    <mat-form-field class="input full-width">
+      <input matInput type="text" [(ngModel)]="answerTitle" class="topicInput" placeholder="My recommendation is">
+    </mat-form-field>
+    <mat-form-field class="input full-width">
+      <input matInput type="text" [(ngModel)]="answerURL" class="topicInput" placeholder="Here is the link">
+    </mat-form-field>
+    <div class="cryt-list">
+
+      <mat-chip-list class="cryt-list-single" *ngFor="let cryt of filters">
+        <mat-chip [selected]="filtersSelected.includes(cryt.low)" (click)="add(cryt, 'low');">{{cryt.low}}</mat-chip>
+        <!--        <mat-chip>{{cryt.mid}}</mat-chip>-->
+        <mat-chip [selected]="filtersSelected.includes(cryt.high)" (click)="add(cryt, 'high');">{{cryt.high}}</mat-chip>
+      </mat-chip-list>
+    </div>
+    <button (click)="postAnswer()" mat-flat-button color="primary"><mat-icon [inline]="true">send</mat-icon> Send</button>
+  </section>
+  <section style="overflow:auto; height:500px;">
+  <div class="answer-single" *ngFor="let x of question.answers">
+    <div class="flex-row-top top">
+      <div class="title"><h1> <a href="{{x.url}}" target="_blank"> {{x.title}}</a></h1></div>
+      <div class="helpful">
+        <button mat-flat-button color="primary"><mat-icon [inline]="true">favorite</mat-icon> Helpful</button>
+      </div>
+<!--      <div class="metadata">{{x.createdAt | date}}</div>-->
+    </div>
+    <div class="flex-row down">
+      <div class="rating-left rating">
+        <div class="rating-top">Is short?</div>
+        <div class="rating-bottom">
+        <button mat-icon-button (click)="vote(x.id, false,'IS_LONG')">
+          <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
+        </button>
+        <button mat-icon-button (click)="vote(x.id, true,'IS_LONG')">
+          <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
+        </button>
+        </div>
+      </div>
+      <div class="rating-middle rating">
+        <div class="rating-top">Is sciency?</div>
+        <div class="rating-bottom">
+        <button mat-icon-button (click)="vote(x.id, false,'IS_SCIENCE')">
+          <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
+        </button>
+        <button mat-icon-button (click)="vote(x.id, true,'IS_SCIENCE')">
+          <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
+        </button>
+        </div>
+      </div>
+      <div class="rating-right rating">
+        <div class="rating-top">Is complex?</div>
+<div class="rating-bottom">
+        <button mat-icon-button (click)="vote(x.id, false,'IS_COMPLEX')">
+          <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
+        </button>
+        <button mat-icon-button (click)="vote(x.id, true,'IS_COMPLEX')">
+          <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
+        </button>
+</div>
+      </div>
+    </div>
+
+  </div>
+  </section>
+</section>

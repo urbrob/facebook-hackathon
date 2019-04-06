@@ -1,3 +1,35 @@
-<p>
-  ask-page works!
-</p>
+<section class="wrapper">
+<section class="header">
+
+</section>
+  <section class="short-warning" *ngIf="search.length>2 && search.length<9" [@enterAnimation]="{value: 'a', params: {h: '600px', time:'100ms'}}" >
+    Your question seems a bit unspecific. You might not get responses you want. Consider adding some more details.
+  </section>
+<section class="question-input" >
+  <mat-form-field class="input full-width">
+   <input matInput type="text" [(ngModel)]="search" class="topicInput" placeholder="{{topString}}">
+  </mat-form-field>
+</section>
+
+
+<section [@enterAnimation]="{value: 'a', params: {h: '200px', time:'900ms'}}" class="switches" *ngIf="search.length > 2">
+  <h2> <small>That should be: </small>
+    <span class="inline-filter" *ngFor="let f of filtersSelected">{{f}}, </span>
+  </h2>
+  <div class="cryt-list">
+
+      <mat-chip-list class="cryt-list-single" *ngFor="let cryt of filters">
+        <mat-chip [selected]="filtersSelected.includes(cryt.low)" (click)="add(cryt, 'low'); searchResultsCmp.DoSearch(search, filtersSelected)">{{cryt.low}}</mat-chip>
+<!--        <mat-chip>{{cryt.mid}}</mat-chip>-->
+        <mat-chip [selected]="filtersSelected.includes(cryt.high)" (click)="add(cryt, 'high'); searchResultsCmp.DoSearch(search, filtersSelected)">{{cryt.high}}</mat-chip>
+      </mat-chip-list>
+  </div>
+</section>
+  <div style="margin-top:1em;">
+  <app-search-results #searchResultsCmp [searchString]="search" [selectedFilters]="filtersSelected"></app-search-results>
+  </div>
+<section [@enterAnimation]="{value: 'a', params: {h: '100px', time:'200ms'}}" class="ask" *ngIf="search.length>2">
+
+  <button (click)="postQuestion()" mat-flat-button color="primary" class="ask-button">Ask</button>
+</section>
+</section>

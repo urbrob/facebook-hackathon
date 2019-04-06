@@ -1,0 +1,18 @@
+.wrapper{
+  display:flex;
+  background-color: rgba(72, 158, 249, 0.1);
+  border-radius:5px;
+  padding:3px;
+  padding-left:10%;
+
+}
+.chips{
+  display:flex;
+  justify-content: left;
+  margin-left:4em;
+  font-size:0.6em;
+}
+.title{
+  font-size:1.2em;
+  transform: translateY(20%);
+}
