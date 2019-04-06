@@ -1,12 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from sourcecracker.utils import current_user
-
-# Create your models here.
+import uuid
 
 
 class User(AbstractUser):
-    pass
+    hash_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 
 class Group(models.Model):

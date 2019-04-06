@@ -24,7 +24,9 @@ class Query(graphene.ObjectType):
     def resolve_questions(self, info):
         return Question.objects.all()
 
+
 class Mutation(graphene.ObjectType):
     pass
+
 
 schema = graphene.Schema(query=Query)
