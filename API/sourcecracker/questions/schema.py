@@ -3,6 +3,7 @@ from questions.models import Question, Answer, Rating
 from graphene import Argument, Boolean, String, Int
 from django.db.models import Subquery, Count
 from accounts.models import User
+from accounts.schema import UserNode
 import graphene
 
 
@@ -12,9 +13,23 @@ class RatingNode(DjangoObjectType):
 
 
 class AnswerNode(DjangoObjectType):
+    created_by = graphene.Field(UserNode)
+    is_long = graphene.Boolean()
+    is_complex = graphene.Boolean()
+    is_science = graphene.Boolean()
+
     class Meta:
         model = Answer
+        only_fields = ('id', 'title', 'url', 'created_by', 'created_at', 'is_long', 'is_complex', 'is_science')
 
+    def resolve_is_long(self, info):
+        return self.is_long
+
+    def resolve_is_complex(self, info):
+        return self.is_complex
+
+    def resolve_is_science(self, info):
+        return self.is_science
 
 class QuestionNode(DjangoObjectType):
     answers = graphene.List(AnswerNode, is_long=Argument(Boolean), is_science=Argument(Boolean), is_complex=Argument(Boolean))
