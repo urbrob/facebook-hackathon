@@ -38,9 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'graphene_django',
+
     'accounts',
     'questions',
 ]
+
+GRAPHENE = {
+    'SCHEMA': 'sourcecracker.schema.schema'
+}
 
 LOGIN_REDIRECT_URL = 'home'
 
