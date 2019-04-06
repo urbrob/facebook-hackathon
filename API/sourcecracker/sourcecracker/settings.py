@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'corsheaders',
     'graphene_django',
 
     'accounts',
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 GRAPHENE = {
     'SCHEMA': 'sourcecracker.schema.schema'
+
 }
 
 LOGIN_REDIRECT_URL = 'home'
@@ -53,6 +54,7 @@ LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -79,7 +81,8 @@ TEMPLATES = [
         },
     },
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ("POST", "GET", "OPTIONS")
 WSGI_APPLICATION = 'sourcecracker.wsgi.application'
 
 
