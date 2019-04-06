@@ -31,6 +31,10 @@ class AnswerNode(DjangoObjectType):
     def resolve_is_science(self, info):
         return self.is_science
 
+    def resolve_created_by(self, info):
+        returns self.created_by
+
+
 class QuestionNode(DjangoObjectType):
     answers = graphene.List(AnswerNode, is_long=Argument(Boolean), is_science=Argument(Boolean), is_complex=Argument(Boolean))
 

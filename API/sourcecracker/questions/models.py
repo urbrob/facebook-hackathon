@@ -5,7 +5,7 @@ from accounts.models import Group, User
 
 class Question(models.Model):
     content = models.CharField(max_length=512)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True)
     created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="questions", default=current_user)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -34,7 +34,6 @@ class Answer(models.Model):
     @property
     def is_science(self):
         return self.rating_set.filter(rating_type=Rating.IS_SCIENCE, rate=True).count() > self.rating_set.filter(rating_type=Rating.IS_SCIENCE, rate=False).count()
-
 
 
 class Rating(models.Model):
