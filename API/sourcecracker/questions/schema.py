@@ -127,16 +127,6 @@ class CreateAnswer(graphene.Mutation):
         sender_email = question.created_by.email
         answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
 
-        from django.core.mail import send_mail
-
-        send_mail(
-            'You\'ve got your answer!!',
-            'Hello, please, check your question: ' + str(kwargs['question_id']) + ' a new answer is awaiting',
-            'adka94@op.pl',
-            [sender_email],
-            fail_silently=False,
-        )
-
         return CreateAnswer(answer=answer)
 
 
