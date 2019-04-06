@@ -37,7 +37,10 @@ class QuestionNode(DjangoObjectType):
         model = Question
 
     def resolve_answers(self, info, *args, **kwargs):
-        return self.answer_set.all()
+        answers = self.answer_set.all()
+        for key, value in kwargs.items():
+            answers = filter(lambda x: getattr(x, key) == value, answers)
+        return answers
 
 
 class Query(graphene.ObjectType):
