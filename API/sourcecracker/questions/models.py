@@ -40,10 +40,12 @@ class Rating(models.Model):
     IS_LONG = 'is-long'
     IS_SCIENCE = 'is-science'
     IS_COMPLEX = 'is-complex'
+    IS_HELPFUL = 'is-helpful'
     RATING_TYPES = (
         (IS_LONG, 'Is long'),
         (IS_SCIENCE, 'Is science'),
         (IS_COMPLEX, 'Is complex'),
+        (IS_HELPFUL, 'Is helpful'),
     )
     rating_type = models.CharField(choices=RATING_TYPES, max_length=32)
     rate = models.BooleanField(default=False)
