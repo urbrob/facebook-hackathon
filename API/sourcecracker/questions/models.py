@@ -21,7 +21,7 @@ class Answer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{title} by {created_by} for {self.question.content}'
+        return f'{self.title} by {self.created_by} for {self.question.content}'
 
 
 class Rating(models.Model):
