@@ -1,0 +1,4 @@
+<h2 *ngIf="resultsList.length != 0">Check these!</h2>
+<div  *ngFor="let x of resultsList" class="single-search-record">
+<app-search-result-single  [result]="x"></app-search-result-single>
+</div>

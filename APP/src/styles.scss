@@ -1,0 +1,19 @@
+
+//@import '~@angular/material/_theming.scss';
+//@include mat-core();
+
+//$APP-primary: mat-palette($mat-blue-gray);
+//$APP-accent: mat-palette($mat-pink, A200, A100, A400);
+//
+//$APP-warn: mat-palette($mat-red);
+//
+//$APP-theme: mat-light-theme($APP-primary, $APP-accent, $APP-warn);
+//
+//@include angular-material-theme($APP-theme);
+@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+body{
+  background-color:#F5F5F5;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
