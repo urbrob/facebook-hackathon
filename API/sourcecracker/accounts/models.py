@@ -13,12 +13,7 @@ class Group(models.Model):
     name = models.CharField(max_length=250)
     users = models.ManyToManyField(User, through="accounts.Membership")
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="created_groups",
-        default=current_user,
-    )
+    created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="created_groups", default=current_user)
 
 
 class Membership(models.Model):
