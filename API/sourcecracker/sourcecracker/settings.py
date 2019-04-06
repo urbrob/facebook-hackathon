@@ -25,7 +25,7 @@ SECRET_KEY = '+is4(g$tlu9*0uj9%$ypthy*^#ouou!x^g$w9&tc0xqs)s(j_v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'accounts',
+    'questions',
 ]
+
+LOGIN_REDIRECT_URL = 'home'
+
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
