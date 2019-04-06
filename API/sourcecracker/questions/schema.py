@@ -91,7 +91,7 @@ class CreateRating(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         answer = Answer.objects.get(id=kwargs['answer_id'])
-        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=Rating.IS_LONG)
+        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
         return CreateRating(rating=rating)
 
 
