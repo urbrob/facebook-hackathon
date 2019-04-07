@@ -20,6 +20,7 @@ class AnswerNode(DjangoObjectType):
     is_long = String()
     is_complex = String()
     is_science = String()
+    helpful_count = Int()
 
     class Meta:
         model = Answer
@@ -46,6 +47,9 @@ class AnswerNode(DjangoObjectType):
     def resolve_created_by(self, info):
         return self.created_by
 
+    def resolve_helpful_count(self, info):
+        return self.rating_set.filter(rating_type=Rating.IS_HELPFUL, rate=True).count()
+
 
 class QuestionNode(DjangoObjectType):
     answers = graphene.List(AnswerNode, is_long=Argument(Boolean), hash_id=Argument(String, required=True),
@@ -59,19 +63,21 @@ class QuestionNode(DjangoObjectType):
         model = Question
 
     def resolve_answers(self, info, *args, **kwargs):
-        if kwargs['only_local']:
-            memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
-            answers = self.answers_set.filter(created_by__group_memberships__in=memberships)
+        hash_id = kwargs.pop('hash_id')
+        if kwargs.pop('only_local'):
+            memberships = User.objects.get(hash_id=hash_id).group_memberships.all()
+            answers = self.answer_set.filter(created_by__group_memberships__in=memberships)
         else:
             answers = self.answer_set.all()
         for key, value in kwargs.items():
             answers = filter(lambda x: getattr(x, key) == value, answers)
         return answers
 
-    def resolve_answers_count(self, info):
-        if kwargs['only_local']:
-            memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
-            answers = self.answers_set.filter(created_by__group_memberships__in=memberships)
+    def resolve_answers_count(self, info, *args, **kwargs):
+        hash_id = kwargs.pop('hash_id')
+        if kwargs.pop('only_local'):
+            memberships = User.objects.get(hash_id=hash_id).group_memberships.all()
+            answers = self.answer_set.filter(created_by__group_memberships__in=memberships)
         else:
             answers = self.answer_set.all()
         for key, value in kwargs.items():
@@ -85,6 +91,7 @@ class Query(graphene.ObjectType):
         only_local=Argument(Boolean, required=True),
         hash_id=Argument(String, required=True),
         question=Argument(String),
+        answers_question=Argument(Int),
     )
     question = graphene.Field(
         QuestionNode,
@@ -103,10 +110,19 @@ class Query(graphene.ObjectType):
 
     def resolve_questions(self, info, **kwargs):
         memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
-        filters = {'content__icontains': kwargs.get('question', '')}
+        if kwargs.get('question', None):
+            filters = {'content__icontains': kwargs.get('question', '')}
+        else:
+            filters = {}
         if kwargs['only_local']:
             filters['created_by__group_memberships__in'] = memberships
-        return Question.objects.filter(**filters)
+        questions = Question.objects.filter(**filters)
+        if kwargs.get('answers_question'):
+            for question in questions.distinct():
+                if question.answer_set.count() < kwargs.get('answers_question'):
+                    yield question
+        else:
+            return questions.distinct()
 
     def resolve_user_questions(self, info, **kwargs):
         return Question.objects.filter(created_by__hash_id=kwargs['hash_id'])
@@ -144,12 +160,15 @@ class CreateRating(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         answer = Answer.objects.get(id=kwargs['answer_id'])
-        try:
-            rating = Rating.objects.create(answer=answer, created_by=user, rating_type=kwargs['rating_type'])
-            rating.rate = kwargs['rate']
-            rating.save()
-        except Rating.DoesNotExist:
-            rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        if kwargs['rating_type'] is Rating.IS_HELPFUL:
+            rating = Rating.objects.get_or_create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        else:
+            try:
+                rating = Rating.objects.get(answer=answer, created_by=user, rating_type=kwargs['rating_type'])
+                rating.rate = kwargs['rate']
+                rating.save()
+            except Rating.DoesNotExist:
+                rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
         return CreateRating(rating=rating)
 
 
@@ -186,7 +205,6 @@ class BroadcastHelpEmail(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         question = Question.objects.get(id=kwargs['question_id'])
         emails = User.objects.filter(~Q(hash_id=question.created_by.hash_id)).values_list('email', flat=True)
-        #import pdb; pdb.set_trace()
         send_mail(
             'Please, help !!',
             f'Hello, please, we need your help with answering this question: {question.id}',

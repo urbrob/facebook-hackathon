@@ -7,9 +7,10 @@ from accounts.models import User
 
 
 def invite_to_group(request, hash_id, group_id):
-    user = User.objects.get(id=hash_id)
-    Membership.objects.create(group=group_id, user=user)
-    return redirect('localhost:4200')
+    user = User.objects.get(hash_id=hash_id)
+    group = Group.objects.get(id=group_id)
+    Membership.objects.create(group=group, user=user)
+    return redirect('localhost:4200/')
 
 
 def redirect_counter(request, answer_id, user_hash):

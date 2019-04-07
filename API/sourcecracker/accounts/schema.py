@@ -3,6 +3,7 @@ from accounts.models import User, Group, Membership
 from sourcecracker.mixins import MutationErrorMixin
 from django.db.models import Q
 from django.contrib.auth import authenticate
+from django.core.mail import send_mail
 import graphene
 
 
@@ -45,6 +46,20 @@ class StatusEnum(graphene.Enum):
     USER = Membership.USER
 
 
+class AddGroup(graphene.Mutation):
+    class Arguments:
+        hash_id = graphene.String(required=True)
+        group = graphene.String(required=True)
+
+    group = graphene.Field(GroupNode)
+
+    def mutate(self, info, **kwargs):
+        user = User.objects.get(hash_id=kwargs['hash_id'])
+        group = Group.objects.create(name=kwargs['group'], created_by=user)
+        Membership.objects.create(user=user, group=group, status=Membership.OWNER)
+        return AddGroup(group=group)
+
+
 class AddToGroup(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
@@ -56,7 +71,7 @@ class AddToGroup(graphene.Mutation):
         user = User.objects.get(email=kwargs['email'])
         group = Group.objects.get(id=kwargs['group_id'])
         send_mail(
-            'Welcome to ne wgroup!!',
+            'Welcome to new group!!',
             f'Hello, someone invite you to new group. Please click on link in order to join!\n{group.invite_user(user.hash_id)}',
             'adka94@op.pl',
             [user.email],
@@ -100,5 +115,6 @@ class Mutation(graphene.ObjectType):
     register_user = UserRegistrationMutation.Field()
     login_user = UserLoginMutation.Field()
     add_to_group = AddToGroup.Field()
+    add_group = AddGroup.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
