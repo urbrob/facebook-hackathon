@@ -3,6 +3,9 @@ from questions.models import Question, Answer, Rating, SourceEntry
 from graphene import Argument, Boolean, String, Int
 from accounts.models import User
 from accounts.schema import UserNode
+from django.core.mail import send_mail
+from django.db.models import Q
+
 import graphene
 
 
@@ -154,10 +157,33 @@ class CreateAnswer(graphene.Mutation):
         return CreateAnswer(answer=answer)
 
 
+class BroadcastHelpEmail(graphene.Mutation):
+    class Arguments:
+        hash_id = graphene.String(required=True)
+        question_id = graphene.Int(required=True)
+
+    status = graphene.String()
+
+    def mutate(self, info, *arg, **kwargs):
+        question = Question.objects.get(id=kwargs['question_id'])
+        emails = User.objects.filter(~Q(hash_id=question.created_by.hash_id)).values_list('email', flat=True)
+        #import pdb; pdb.set_trace()
+        send_mail(
+            'Please, help !!',
+            f'Hello, please, we need your help with answering this question: {question.id}',
+            'adka94@op.pl',
+            [emails],
+            fail_silently=False,
+            )
+
+        return BroadcastHelpEmail(status="That is perfect!")
+
+
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
     create_rating = CreateRating.Field()
     create_answer = CreateAnswer.Field()
+    broadcast_help_email = BroadcastHelpEmail.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
