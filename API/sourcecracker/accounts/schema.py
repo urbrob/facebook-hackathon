@@ -47,23 +47,22 @@ class StatusEnum(graphene.Enum):
 
 class AddToGroup(graphene.Mutation):
     class Arguments:
-        hash_id = graphene.String(required=True)
+        email = graphene.String(required=True)
         group_id = graphene.Int(required=True)
-        status = StatusEnum()
 
-    membership = graphene.Field(MembershipNode)
+    status = graphene.Boolean()
 
     def mutate(self, info, **kwargs):
-        user = User.objects.get(hash_id=kwargs['hash_id'])
+        user = User.objects.get(email=kwargs['email'])
         group = Group.objects.get(id=kwargs['group_id'])
         send_mail(
             'Welcome to ne wgroup!!',
-            f'Hello, someone invite you to new group. Please click on link in order to join!\n{group.invite_user(kwargs["hash_id"])}',
+            f'Hello, someone invite you to new group. Please click on link in order to join!\n{group.invite_user(user.hash_id)}',
             'adka94@op.pl',
             [user.email],
             fail_silently=True,
         )
-        return AddToGroup(membership=membership)
+        return AddToGroup(status=True)
 
 
 class UserLoginMutation(MutationErrorMixin, graphene.Mutation):
@@ -85,9 +84,16 @@ class UserLoginMutation(MutationErrorMixin, graphene.Mutation):
 
 class Query(graphene.ObjectType):
     users = graphene.List(UserNode)
+    user_groups = graphene.List(
+        GroupNode,
+        hash_id=graphene.Argument(graphene.String, required=True)
+    )
 
     def resolve_users(self, info):
         return User.objects.all()
+
+    def resolve_user_groups(self, info, **kwargs):
+        return Group.objects.filter(memberships__user__hash_id=kwargs['hash_id'])
 
 
 class Mutation(graphene.ObjectType):
