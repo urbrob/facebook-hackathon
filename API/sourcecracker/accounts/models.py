@@ -14,6 +14,9 @@ class Group(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="created_groups", default=current_user)
 
+    def invite_user(self, user_hash):
+        return f'http://693069ba.ngrok.io{redirect("invite", args=[user_hash, self.id])}'
+
 
 class Membership(models.Model):
     OWNER = "owner"

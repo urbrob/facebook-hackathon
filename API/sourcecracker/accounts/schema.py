@@ -56,7 +56,13 @@ class AddToGroup(graphene.Mutation):
     def mutate(self, info, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         group = Group.objects.get(id=kwargs['group_id'])
-        membership = Membership.objects.create(status = kwargs['status'], user=user, group=group)
+        send_mail(
+            'Welcome to ne wgroup!!',
+            f'Hello, someone invite you to new group. Please click on link in order to join!\n{group.invite_user(kwargs["hash_id"])}',
+            'adka94@op.pl',
+            [user.email],
+            fail_silently=True,
+        )
         return AddToGroup(membership=membership)
 
 
@@ -66,11 +72,12 @@ class UserLoginMutation(MutationErrorMixin, graphene.Mutation):
         password = graphene.String(required=True)
 
     hash_id = graphene.String()
+    in_group = graphene.Boolean()
 
     def mutate(self, info, **kwargs):
         user = authenticate(username=kwargs['email'].split('@')[0], password=kwargs['password'])
         if user:
-            return UserLoginMutation(hash_id=user.hash_id)
+            return UserLoginMutation(hash_id=user.hash_id, in_group=user.group_memberships.exists())
         else:
             return UserLoginMutation.error("Unauthorized attempt")
 

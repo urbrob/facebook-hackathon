@@ -48,32 +48,47 @@ class AnswerNode(DjangoObjectType):
 
 
 class QuestionNode(DjangoObjectType):
-    answers = graphene.List(AnswerNode, is_long=Argument(Boolean),
+    answers = graphene.List(AnswerNode, is_long=Argument(Boolean), hash_id=Argument(String, required=True),
                             is_science=Argument(Boolean), is_complex=Argument(Boolean),
-                            user=Argument(String))
-    answers_count = graphene.Int()
+                            user=Argument(String), only_local=Argument(Boolean, required=True))
+    answers_count = graphene.Int(is_long=Argument(Boolean), hash_id=Argument(String, required=True),
+                            is_science=Argument(Boolean), is_complex=Argument(Boolean),
+                            user=Argument(String), only_local=Argument(Boolean, required=True))
 
     class Meta:
         model = Question
 
     def resolve_answers(self, info, *args, **kwargs):
-        answers = self.answer_set.all()
+        if kwargs['only_local']:
+            memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
+            answers = self.answers_set.filter(created_by__group_memberships__in=memberships)
+        else:
+            answers = self.answer_set.all()
         for key, value in kwargs.items():
             answers = filter(lambda x: getattr(x, key) == value, answers)
         return answers
 
     def resolve_answers_count(self, info):
-        return self.answer_set.count()
+        if kwargs['only_local']:
+            memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
+            answers = self.answers_set.filter(created_by__group_memberships__in=memberships)
+        else:
+            answers = self.answer_set.all()
+        for key, value in kwargs.items():
+            answers = filter(lambda x: getattr(x, key) == value, answers)
+        return len(answers)
 
 
 class Query(graphene.ObjectType):
     questions = graphene.List(
         QuestionNode,
-        question=Argument(String)
+        only_local=Argument(Boolean, required=True),
+        hash_id=Argument(String, required=True),
+        question=Argument(String),
     )
     question = graphene.Field(
         QuestionNode,
-        question_id=Argument(Int, required=True)
+        question_id=Argument(Int, required=True),
     )
     user_questions = graphene.List(
         QuestionNode,
@@ -87,7 +102,11 @@ class Query(graphene.ObjectType):
             return None
 
     def resolve_questions(self, info, **kwargs):
-        return Question.objects.filter(content__icontains=kwargs.get('question', ''))
+        memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
+        filters = {'content__icontains': kwargs.get('question', '')}
+        if kwargs['only_local']:
+            filters['created_by__group_memberships__in'] = memberships
+        return Question.objects.filter(**filters)
 
     def resolve_user_questions(self, info, **kwargs):
         return Question.objects.filter(created_by__hash_id=kwargs['hash_id'])
@@ -177,7 +196,7 @@ class BroadcastHelpEmail(graphene.Mutation):
             )
 
         return BroadcastHelpEmail(status="That is perfect!")
-        
+
 
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
