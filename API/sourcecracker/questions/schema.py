@@ -122,7 +122,12 @@ class CreateRating(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         answer = Answer.objects.get(id=kwargs['answer_id'])
-        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        try:
+            rating = Rating.objects.create(answer=answer, created_by=user, rating_type=kwargs['rating_type'])
+            rating.rate = kwargs['rate']
+            rating.save()
+        except Rating.DoesNotExist:
+            rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
         return CreateRating(rating=rating)
 
 
