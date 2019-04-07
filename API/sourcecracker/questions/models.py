@@ -25,7 +25,7 @@ class Answer(models.Model):
         return f'{self.title} by {self.created_by} for {self.question.content}'
 
     def redirect_url(self, user_hash):
-        return reverse('redirect', args=[self.id, user_hash])
+        return f'http://693069ba.ngrok.io{reverse("redirect", args=[self.id, user_hash])}'
 
     @property
     def is_long(self):

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from sourcecracker.utils import current_user
+from django.shortcuts import redirect
+from django.urls import reverse
 import uuid
 
 
@@ -13,6 +15,9 @@ class Group(models.Model):
     users = models.ManyToManyField(User, through="accounts.Membership")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="created_groups", default=current_user)
+
+    def invite_user(self, user_hash):
+        return f'http://693069ba.ngrok.io{reverse("invite", args=[user_hash, self.id])}'
 
 
 class Membership(models.Model):
