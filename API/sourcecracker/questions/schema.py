@@ -14,6 +14,9 @@ class RatingNode(DjangoObjectType):
 class AnswerNode(DjangoObjectType):
     url = String(user_hash=Argument(String))
     is_visited = Boolean(user_hash=Argument(String, required=True))
+    is_long = String()
+    is_complex = String()
+    is_science = String()
 
     class Meta:
         model = Answer
@@ -45,6 +48,7 @@ class QuestionNode(DjangoObjectType):
     answers = graphene.List(AnswerNode, is_long=Argument(Boolean),
                             is_science=Argument(Boolean), is_complex=Argument(Boolean),
                             user=Argument(String))
+    answers_count = graphene.Int()
 
     class Meta:
         model = Question
@@ -54,6 +58,9 @@ class QuestionNode(DjangoObjectType):
         for key, value in kwargs.items():
             answers = filter(lambda x: getattr(x, key) == value, answers)
         return answers
+
+    def resolve_answers_count(self, info):
+        return self.answer_set.count()
 
 
 class Query(graphene.ObjectType):
@@ -65,6 +72,10 @@ class Query(graphene.ObjectType):
         QuestionNode,
         question_id=Argument(Int, required=True)
     )
+    user_questions = graphene.List(
+        QuestionNode,
+        hash_id=Argument(String, required=True)
+    )
 
     def resolve_question(self, info, question_id):
         try:
@@ -74,6 +85,9 @@ class Query(graphene.ObjectType):
 
     def resolve_questions(self, info, **kwargs):
         return Question.objects.filter(content__icontains=kwargs.get('question', ''))
+
+    def resolve_user_questions(self, info, **kwargs):
+        return Question.objects.filter(created_by__hash_id=kwargs['hash_id'])
 
 
 class CreateQuestion(graphene.Mutation):
@@ -118,25 +132,20 @@ class CreateAnswer(graphene.Mutation):
         url = graphene.String(required=True)
         question_id = graphene.Int(required=True)
         hash_id = graphene.String(required=True)
+        is_long = graphene.Boolean(required=True)
+        is_complex = graphene.Boolean(required=True)
+        is_science = graphene.Boolean(required=True)
 
     answer = graphene.Field(AnswerNode)
 
     def mutate(self, info, *arg, **kwargs):
-        user = User.objects.get(hash_id=kwargs['hash_id'])
-        question = Question.objects.get(id=kwargs['question_id'])
+        user = User.objects.get(hash_id=kwargs.pop('hash_id'))
+        question = Question.objects.get(id=kwargs.pop('question_id'))
         sender_email = question.created_by.email
-        answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
-
-        from django.core.mail import send_mail
-
-        send_mail(
-            'You\'ve got your answer!!',
-            'Hello, please, check your question: ' + str(kwargs['question_id']) + ' a new answer is awaiting',
-            'adka94@op.pl',
-            [sender_email],
-            fail_silently=False,
-        )
-
+        answer = Answer.objects.create(title=kwargs.pop('title'), url=kwargs.pop('url'), question=question, created_by=user)
+        for key, value in kwargs.items():
+            key = key.replace('_', '-')
+            Rating.objects.create(rating_type=key, rate=value, answer=answer, created_by=user)
         return CreateAnswer(answer=answer)
 
 
