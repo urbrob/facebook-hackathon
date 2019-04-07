@@ -147,15 +147,10 @@ class CreateAnswer(graphene.Mutation):
         user = User.objects.get(hash_id=kwargs.pop('hash_id'))
         question = Question.objects.get(id=kwargs.pop('question_id'))
         sender_email = question.created_by.email
-<<<<<<< HEAD
         answer = Answer.objects.create(title=kwargs.pop('title'), url=kwargs.pop('url'), question=question, created_by=user)
         for key, value in kwargs.items():
             key = key.replace('_', '-')
             Rating.objects.create(rating_type=key, rate=value, answer=answer, created_by=user)
-=======
-        answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
-
->>>>>>> ecbd98a256b85efbafc631883efa801e3e2dc762
         return CreateAnswer(answer=answer)
 
 

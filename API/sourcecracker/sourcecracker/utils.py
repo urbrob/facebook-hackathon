@@ -36,4 +36,4 @@ def ask_google(content):
             num=GOOGLE_SEARCH_RESULTS_PER_PAGE,
             cx=GOOGLE_SEARCH_ENGINE_ID,
         ).execute()
-    return {data['title']: data['link'] for data in results['items']:
+    return {data['title']: data['link'] for data in results['items']}
