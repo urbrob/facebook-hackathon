@@ -177,7 +177,7 @@ class BroadcastHelpEmail(graphene.Mutation):
             )
 
         return BroadcastHelpEmail(status="That is perfect!")
-
+        
 
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()

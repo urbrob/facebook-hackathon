@@ -39,6 +39,27 @@ class UserRegistrationMutation(MutationErrorMixin, graphene.Mutation):
             return UserRegistrationMutation.error('Email or username is taken')
 
 
+class StatusEnum(graphene.Enum):
+    OWNER = Membership.OWNER
+    MODERATOR = Membership.MODERATOR
+    USER = Membership.USER
+
+
+class AddToGroup(graphene.Mutation):
+    class Arguments:
+        hash_id = graphene.String(required=True)
+        group_id = graphene.Int(required=True)
+        status = StatusEnum()
+
+    membership = graphene.Field(MembershipNode)
+
+    def mutate(self, info, **kwargs):
+        user = User.objects.get(hash_id=kwargs['hash_id'])
+        group = Group.objects.get(id=kwargs['group_id'])
+        membership = Membership.objects.create(status = kwargs['status'], user=user, group=group)
+        return AddToGroup(membership=membership)
+
+
 class UserLoginMutation(MutationErrorMixin, graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
@@ -65,6 +86,6 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.ObjectType):
     register_user = UserRegistrationMutation.Field()
     login_user = UserLoginMutation.Field()
+    add_to_group = AddToGroup.Field()
 
-
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=Mutation)
