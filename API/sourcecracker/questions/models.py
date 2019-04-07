@@ -16,9 +16,9 @@ class Question(models.Model):
 
 class Answer(models.Model):
     title = models.CharField(max_length=128, null=True, blank=True)
-    url = models.URLField(blank=True, null=True)
+    url = models.TextField(blank=True, null=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    created_by = models.ForeignKey(User,on_delete=models.CASCADE, related_name="answers", default=current_user)
+    created_by = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name="answers", default=current_user)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
