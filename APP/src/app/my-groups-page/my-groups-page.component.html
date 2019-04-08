@@ -1,0 +1,10 @@
+<mat-card style="margin-top:2em" class="wrapper">
+  <h1>My groups</h1>
+<div style="display:flex;">
+ <mat-form-field> <input matInput [(ngModel)]="groupName" placeholder="group name"> </mat-form-field><button (click)="makeGroup()" mat-button>New group</button>
+</div>
+  <mat-list class="questions-wrapper" *ngIf="downloaded" role="list">
+    <mat-list-item [@enterAnimation]="{value: 'a', params: {h: '100px', time:'250ms'}}" class="single-list-item" *ngFor="let g of groups" role="listitem" >{{g.name}} <mat-form-field style="margin-left:1em;"><input [(ngModel)]="g.mail" matInput></mat-form-field><button (click)="sendInvite(g)" mat-button><mat-icon [inline]="true">send</mat-icon>Invite</button></mat-list-item>
+  </mat-list>
+  <mat-spinner *ngIf="!downloaded"></mat-spinner>
+</mat-card>

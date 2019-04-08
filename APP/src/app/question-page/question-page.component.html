@@ -1,14 +1,14 @@
-<section class="wrapper" *ngIf="downloaded">
-<h2>I need some info about</h2>
-  <h1 class="title-main">{{question.content}}</h1>
+<section class="wrapper" *ngIf="downloaded" [@enterAnimation]="{value: 'a', params: {h: '7000px', time:'200ms'}}">
+
+  <mat-card style="padding:40px;padding-bottom:80px;"><mat-card-content><h1 class="title-main">{{question.content}}</h1></mat-card-content>
 <!--  <div class="question-date">{{question.createdAt | date}}</div>-->
   <section class="form">
 
     <mat-form-field class="input full-width">
-      <input matInput type="text" [(ngModel)]="answerTitle" class="topicInput" placeholder="My recommendation is">
+      <input matInput type="text" autocomplete="off" [(ngModel)]="answerTitle" class="topicInput" placeholder="My recommendation is">
     </mat-form-field>
     <mat-form-field class="input full-width">
-      <input matInput type="text" [(ngModel)]="answerURL" class="topicInput" placeholder="Here is the link">
+      <input matInput type="text" autocomplete="off" [(ngModel)]="answerURL" class="topicInput" placeholder="Here is the link">
     </mat-form-field>
     <div class="cryt-list">
 
@@ -18,25 +18,48 @@
         <mat-chip [selected]="filtersSelected.includes(cryt.high)" (click)="add(cryt, 'high');">{{cryt.high}}</mat-chip>
       </mat-chip-list>
     </div>
-    <button (click)="postAnswer()" mat-flat-button color="primary"><mat-icon [inline]="true">send</mat-icon> Send</button>
+
   </section>
-  <section style="overflow:auto; height:500px;">
-  <div class="answer-single" *ngFor="let x of question.answers">
+
+      <button style="margin-top:15px;position:absolute;bottom:0;width: 100%;left:0" (click)="postAnswer()" mat-button color="primary"><mat-icon [inline]="true">send</mat-icon> Send</button>
+
+  </mat-card>
+  <section style="margin-top:2em;">
+  <mat-card [@enterAnimation]="{value: 'a', params: {h: '200px', time:'900ms'}}" class="answer-single" *ngFor="let x of question.answers">
     <div class="flex-row-top top">
-      <div class="title"><h1> <a href="{{x.url}}" target="_blank"> {{x.title}}</a></h1></div>
-      <div class="helpful">
-        <button mat-flat-button color="primary"><mat-icon [inline]="true">favorite</mat-icon> Helpful</button>
+      <div (click)="downloadData()" class="title" >
+        <h1 > <a style="text-decoration: none" href="{{x.url}}" (click)="markAsVisited(x)" target="_blank"> {{x.title}}</a></h1>
       </div>
-<!--      <div class="metadata">{{x.createdAt | date}}</div>-->
+      <mat-chip-list class="chips2">
+        <mat-chip *ngIf="x.isVisited" color="primary">Visited</mat-chip>
+      </mat-chip-list>
+      <div class="helpful">
+
+        <button (click)="vote(x.id, true, 'IS_HELPFUL')" mat-button color="primary"><mat-icon (click)="markAsHelpful(x)" matBadge="{{x.helpfulCount}}" [inline]="true">favorite</mat-icon> Helpful </button>
+      </div>
+
+        <mat-chip-list *ngIf="true" class="chips">
+          <mat-chip *ngIf="x.isScience==='false'"><mat-icon>insert_emoticon</mat-icon>for dummies</mat-chip>
+        <mat-chip *ngIf="x.isLong=='false'">Short</mat-chip>
+        <mat-chip *ngIf="x.isComplex=='true'">Complex</mat-chip>
+
+        <mat-chip *ngIf="x.isScience==='true'">sciency</mat-chip>
+        <mat-chip *ngIf="x.isLong==='true'">Long</mat-chip>
+        <mat-chip *ngIf="x.isComplex==='false'">Simple</mat-chip>
+
+      </mat-chip-list>
     </div>
+
+<!--      <div class="metadata">{{x.createdAt | date}}</div>-->
+
     <div class="flex-row down">
       <div class="rating-left rating">
         <div class="rating-top">Is short?</div>
         <div class="rating-bottom">
-        <button mat-icon-button (click)="vote(x.id, false,'IS_LONG')">
+        <button mat-icon-button #b1 (click)="vote(x.id, false,'IS_LONG');b1.disabled=true">
           <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
         </button>
-        <button mat-icon-button (click)="vote(x.id, true,'IS_LONG')">
+        <button mat-icon-button #b2 (click)="vote(x.id, true,'IS_LONG'); b2.disabled=true">
           <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
         </button>
         </div>
@@ -44,10 +67,10 @@
       <div class="rating-middle rating">
         <div class="rating-top">Is sciency?</div>
         <div class="rating-bottom">
-        <button mat-icon-button (click)="vote(x.id, false,'IS_SCIENCE')">
+        <button mat-icon-button #b3 (click)="vote(x.id, false,'IS_SCIENCE');b3.disabled=true;">
           <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
         </button>
-        <button mat-icon-button (click)="vote(x.id, true,'IS_SCIENCE')">
+        <button #b4 mat-icon-button (click)="vote(x.id, true,'IS_SCIENCE');b4.disabled=true">
           <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
         </button>
         </div>
@@ -55,16 +78,16 @@
       <div class="rating-right rating">
         <div class="rating-top">Is complex?</div>
 <div class="rating-bottom">
-        <button mat-icon-button (click)="vote(x.id, false,'IS_COMPLEX')">
+        <button #b5 mat-icon-button (click)="vote(x.id, false,'IS_COMPLEX');b5.disabled=true">
           <mat-icon aria-label="Example icon-button with a heart icon">remove_circle_outlined</mat-icon>
         </button>
-        <button mat-icon-button (click)="vote(x.id, true,'IS_COMPLEX')">
+        <button #b6 mat-icon-button (click)="vote(x.id, true,'IS_COMPLEX');b6.disabled=true">
           <mat-icon aria-label="Example icon-button with a heart icon">check_circle_outlined</mat-icon>
         </button>
 </div>
       </div>
     </div>
 
-  </div>
+  </mat-card>
   </section>
 </section>

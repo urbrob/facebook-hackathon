@@ -1,10 +1,9 @@
 .wrapper{
   display:flex;
-  background-color: rgba(72, 158, 249, 0.1);
   border-radius:5px;
-  padding:3px;
-  padding-left:10%;
-
+  padding:6px;
+  padding-left:2%;
+  justify-content: space-between;
 }
 .chips{
   display:flex;

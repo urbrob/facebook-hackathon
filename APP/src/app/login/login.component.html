@@ -1,0 +1,13 @@
+<mat-card class="wrapper">
+<h1>Login</h1>
+<div class="login-wrapper">
+<mat-form-field class="input full-width">
+  <input autocomplete="off" matInput type="text" [(ngModel)]="login" class="topicInput" placeholder="Login">
+</mat-form-field>
+<mat-form-field class="input full-width">
+  <input matInput type="password" [(ngModel)]="pass" class="topicInput" placeholder="Password">
+</mat-form-field>
+<button mat-button style="width:80%;margin: auto;" (click)="LoginMethod()">Login!</button>
+<button mat-button style="width: 80%; margin:auto;" (click)="Register()">Register</button>
+</div>
+</mat-card>

@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import gql from 'graphql-tag';
+import {UserService} from '../user.service';
 
 @Component({
   selector: 'app-search-results',
@@ -21,7 +22,7 @@ export class SearchResultsComponent implements OnInit {
   }
 
   resultsList = [];
-  constructor(private apollo: Apollo) { }
+  constructor(private apollo: Apollo, private user:UserService) { }
 
   ngOnInit() {
   }
@@ -41,17 +42,17 @@ export class SearchResultsComponent implements OnInit {
       s2+=`isComplex: ${isComplex},`;
     }
     if (s2.length>0) {
-      s2 = '('+s2.substring(0, s2.length - 1)+')';
+      s2 = s2.substring(0, s2.length - 0);
       console.log(s2)
     }
 
     this.apollo.watchQuery({
       query: gql`
           query{
-            questions(question:"${s}"){
+            questions(answersQuestion:999, question:"${s}", onlyLocal:${this.user.isLocal}, hashId:"${this.user.hash}"){
               content
               id
-              answers${s2}{
+              answers(${s2} onlyLocal:${this.user.isLocal}, hashId:"${this.user.hash}"){
                 id
                 title
                 url

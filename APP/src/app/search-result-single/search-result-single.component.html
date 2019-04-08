@@ -1,16 +1,16 @@
-<div class="wrapper">
-  <span class="title"><a target="_blank" href="{{result.answer.url}}">{{result.answer.title}}</a></span>
-  <mat-chip-list class="chips">
-    <mat-chip *ngIf="result.answer.isEasy">for dummies</mat-chip>
-    <mat-chip *ngIf="result.answer.isShort">Short</mat-chip>
-    <mat-chip *ngIf="result.answer.isComplex">Complex</mat-chip>
+<mat-card mat-ripple [routerLink]="['/question', result.question.id]" class="wrapper">
+  <span class="title"><a style="text-decoration: none" target="_blank" href="{{result.answer.url}}">{{result.answer.title}}</a></span>
+  <mat-chip-list *ngIf="true" class="chips" style="font-size:0.8em">
+    <mat-chip *ngIf="result.isScience==='false'"><mat-icon>insert_emoticon</mat-icon>for dummies</mat-chip>
+    <mat-chip *ngIf="result.isLong=='false'">Short</mat-chip>
+    <mat-chip *ngIf="result.isComplex=='true'">Complex</mat-chip>
 
-    <mat-chip *ngIf="!result.answer.isEasy">sciency</mat-chip>
-    <mat-chip *ngIf="!result.answer.isShort">Long</mat-chip>
-    <mat-chip *ngIf="!result.answer.isComplex">Simple</mat-chip>
+    <mat-chip *ngIf="result.isScience==='true'">sciency</mat-chip>
+    <mat-chip *ngIf="result.isLong==='true'">Long</mat-chip>
+    <mat-chip *ngIf="result.isComplex==='false'">Simple</mat-chip>
 
   </mat-chip-list>
-  <a [routerLink]="['/question', result.question.id]" class="question-title title">
+  <a style="text-decoration: none" [routerLink]="['/question', result.question.id]" class="question-title title">
     {{result.question.content}}
   </a>
-</div>
+</mat-card>

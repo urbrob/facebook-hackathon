@@ -1,0 +1,28 @@
+<section class="wrapper" *ngIf="downloaded && questions.length>0 && index<questions.length" [@enterAnimation]="{value: 'a', params: {h: '100px', time:'100ms'}}">
+
+  <mat-card style="padding:40px;padding-bottom:80px;"><mat-card-content><h1 class="title-main">{{question.content}}</h1></mat-card-content>
+    <!--  <div class="question-date">{{question.createdAt | date}}</div>-->
+    <section class="form">
+
+      <mat-form-field class="input full-width">
+        <input matInput type="text" autocomplete="off" [(ngModel)]="answerTitle" class="topicInput" placeholder="My recommendation is">
+      </mat-form-field>
+      <mat-form-field class="input full-width">
+        <input matInput type="text" autocomplete="off" [(ngModel)]="answerURL" class="topicInput" placeholder="Here is the link">
+      </mat-form-field>
+      <div class="cryt-list">
+
+        <mat-chip-list class="cryt-list-single" *ngFor="let cryt of filters">
+          <mat-chip [selected]="filtersSelected.includes(cryt.low)" (click)="add(cryt, 'low');">{{cryt.low}}</mat-chip>
+          <!--        <mat-chip>{{cryt.mid}}</mat-chip>-->
+          <mat-chip [selected]="filtersSelected.includes(cryt.high)" (click)="add(cryt, 'high');">{{cryt.high}}</mat-chip>
+        </mat-chip-list>
+      </div>
+
+    </section>
+
+    <button style="margin-top:15px;position:absolute;bottom:0;width: 100%;left:0" (click)="postAnswer()" mat-button color="primary"><mat-icon [inline]="true">send</mat-icon> Send</button>
+
+  </mat-card>
+<button (click)="loadNext()" style="margin-top:2em;width:100%;color:white" mat-button style="background-color:red">Nope</button>
+</section>

@@ -2,6 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {fold} from '../foldAnimation';
 import {Apollo} from 'apollo-angular';
 import gql from 'graphql-tag';
+import {UserService} from '../user.service';
+import {Router} from '@angular/router';
 
 declare var Chance:any;
 @Component({
@@ -13,7 +15,6 @@ declare var Chance:any;
   ]
 })
 export class AskPageComponent implements OnInit {
-  hashId="dc43bc24-4410-4e32-b8e6-6b5ffc2f2570";
   topStrings = [
     //"Hi! Does anyone know ",
     "Hi! How can I learn about",
@@ -32,7 +33,7 @@ export class AskPageComponent implements OnInit {
     {name:"depth", low:"simple", mid:"medium", high:"complex"}
   ]
   chance: any;
-  constructor(private apollo: Apollo) {
+  constructor(private apollo: Apollo, private user:UserService, private router:Router) {
   }
   add(a, c){
     let contrary  = c=='low'?'high':'low'
@@ -58,9 +59,10 @@ export class AskPageComponent implements OnInit {
             id
             }}
 }
-      `, variables:{hashId:this.hashId, question:this.search}
+      `, variables:{hashId:this.user.hash, question:this.search}
     }).subscribe(({ data }) => {
       console.log('got data', data);
+      this.router.navigate(['/question', data.createQuestion.question.id]);
     },(error) => {
       console.log('there was an error sending the query', error);
     });

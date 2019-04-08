@@ -1,3 +1,18 @@
+<section class="top-bar" style="height:50px; background-color:#489EF9;display:flex;transition: 1s;" [style.backgroundColor]="User.isLocal?'#489EF9':'#0574AF'">
+<!--  <img src="/src/assets/atom.png" width="50" height="50">-->
+<button [routerLink]="['/']" mat-button style="color:white">Ask</button>
+<button [routerLink]="['profile']"  mat-button style="color:white;font-weight: bold">My Questions</button>
+  <button [routerLink]="['questions']" mat-button style="color:white">Browse questions</button>
+  <button [routerLink]="['answer']" mat-button style="color:white;font-weight: bold">Answer questions</button>
+
+  <button [routerLink]="['myGroups']" mat-button style="color:white">My groups</button>
+  <button mat-button (click)="switch()" style="color:white">{{mode}}</button>
+  <button (click)="logout()" mat-button style="margin-left:5em;color:white">Logout</button>
+</section>
 <section class="app-wrapper mat-typography">
+
   <router-outlet></router-outlet>
+</section>
+<section style="margin-top:150px;width:100% ;height:100px;">
+
 </section>

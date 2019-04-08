@@ -1,5 +1,5 @@
 <mat-card  class="wrapper">
-<h1>My questions</h1>
+  <h1>Questions</h1>
 
   <mat-list class="questions-wrapper" *ngIf="downloaded" role="list">
     <mat-list-item class="single-list-item" mat-ripple [@routerLink]="['/question', question.id]" *ngFor="let question of questions" role="listitem" ><span matBadge="{{question.answersCount}}" matBadgeOverlap="false">{{question.content}}</span></mat-list-item>

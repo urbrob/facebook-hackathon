@@ -3,6 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {Apollo} from 'apollo-angular';
 import gql from 'graphql-tag';
 import {fold} from '../foldAnimation';
+import {UserService} from '../user.service';
 
 @Component({
   selector: 'app-question-page',
@@ -21,8 +22,10 @@ export class QuestionPageComponent implements OnInit {
   questionId: number;
   question: object;
   downloaded=false;
-hashId="dc43bc24-4410-4e32-b8e6-6b5ffc2f2570";
-  constructor(private route: ActivatedRoute,private apollo: Apollo) { }
+  markAsVisited(x){
+    x.isVisited=true;
+  }
+  constructor(private route: ActivatedRoute,private apollo: Apollo,private user:UserService) { }
   vote(id, rate, type){
     this.apollo.mutate({
       mutation: gql`mutation createRating($answerId: Int!, $rate: Boolean!, $ratingType: RatingTypes!, $hashId: String!) {
@@ -36,7 +39,7 @@ hashId="dc43bc24-4410-4e32-b8e6-6b5ffc2f2570";
     }
   }
 
-}}`, variables:{answerId:id, rate:rate, ratingType:type, hashId:this.hashId}}).subscribe(({ data }) => {
+}}`, variables:{answerId:id, rate:rate, ratingType:type, hashId:this.user.hash}}).subscribe(({ data }) => {
       console.log('got data', data);
     },(error) => {
       console.log('there was an error sending the query', error);
@@ -68,12 +71,24 @@ hashId="dc43bc24-4410-4e32-b8e6-6b5ffc2f2570";
       mutation createAnswer($title: String!, $url: String!, $questionId: Int!, $hashId: String!, $isComplex: Boolean!, $isScience: Boolean!, $isLong: Boolean!){
         createAnswer(title: $title, url: $url, questionId: $questionId, hashId: $hashId, isComplex:$isComplex, isScience:$isScience, isLong:$isLong){
           answer{
-          id
+           id
+               isLong
+                isComplex
+                helpfulCount
+                isScience
+              title
+              url(userHash:"${this.user.hash}")
+              isVisited(userHash:"${this.user.hash}")
+              createdAt
         }
        }
       }`,
-      variables:{title:this.answerTitle, url:this.answerURL, questionId:this.questionId, hashId:this.hashId, isComplex:isComplex, isScience:isScience, isLong:isLong}}).subscribe(({ data }) => {
+      variables:{title:this.answerTitle, url:this.answerURL, questionId:this.questionId, hashId:this.user.hash, isComplex:isComplex, isScience:isScience, isLong:isLong}}).subscribe(({ data }) => {
       console.log('got data', data);
+      let a = data.createAnswer.answer;
+      (this.question as any).answers.push(a)
+     // this.downloadData()
+
 
     },(error) => {
       console.log('there was an error sending the query', error);
@@ -83,34 +98,45 @@ hashId="dc43bc24-4410-4e32-b8e6-6b5ffc2f2570";
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       this.questionId = parseInt(params.get("id"));
+      this.downloadData()
     });
-    this.apollo.watchQuery({
+
+
+  }
+  markAsHelpful(x){
+    x.helpfulCount+=1;
+  }
+  downloadData(){
+    this.apollo.query({
       query: gql`
           query{
             question(questionId:${this.questionId}){
               content
               id
+              
               createdAt
-              answers{
+              answers(hashId:"${this.user.hash}", onlyLocal:${this.user.isLocal}){
               id
+               isLong
+                isComplex
+                helpfulCount
+                isScience
               title
-              url
+              url(userHash:"${this.user.hash}")
+              isVisited(userHash:"${this.user.hash}")
               createdAt
     }
   }
 }
         `,
-    }).valueChanges.subscribe(o=>{
+    }).subscribe(o=>{
+      console.log(o.data)
 
       this.question =(o.data as any).question;
-      this.question['createdAt']=Date.parse(this.question['createdAt']);
-      for (let x of this.question['answers']){
-        x['createdAt'] = Date.parse(x['createdAt']);
-      }
-      console.log(this.question)
-  this.downloaded=true;
-    });
 
+      console.log(this.question)
+      this.downloaded=true;
+    });
   }
 
 }
