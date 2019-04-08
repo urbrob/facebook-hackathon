@@ -3,6 +3,9 @@ from questions.models import Question, Answer, Rating, SourceEntry
 from graphene import Argument, Boolean, String, Int
 from accounts.models import User
 from accounts.schema import UserNode
+from django.core.mail import send_mail
+from django.db.models import Q
+
 import graphene
 
 
@@ -14,6 +17,10 @@ class RatingNode(DjangoObjectType):
 class AnswerNode(DjangoObjectType):
     url = String(user_hash=Argument(String))
     is_visited = Boolean(user_hash=Argument(String, required=True))
+    is_long = String()
+    is_complex = String()
+    is_science = String()
+    helpful_count = Int()
 
     class Meta:
         model = Answer
@@ -40,30 +47,59 @@ class AnswerNode(DjangoObjectType):
     def resolve_created_by(self, info):
         return self.created_by
 
+    def resolve_helpful_count(self, info):
+        return self.rating_set.filter(rating_type=Rating.IS_HELPFUL, rate=True).count()
+
 
 class QuestionNode(DjangoObjectType):
-    answers = graphene.List(AnswerNode, is_long=Argument(Boolean),
+    answers = graphene.List(AnswerNode, is_long=Argument(Boolean), hash_id=Argument(String, required=True),
                             is_science=Argument(Boolean), is_complex=Argument(Boolean),
-                            user=Argument(String))
+                            user=Argument(String), only_local=Argument(Boolean, required=True))
+    answers_count = graphene.Int(is_long=Argument(Boolean), hash_id=Argument(String, required=True),
+                            is_science=Argument(Boolean), is_complex=Argument(Boolean),
+                            user=Argument(String), only_local=Argument(Boolean, required=True))
 
     class Meta:
         model = Question
 
     def resolve_answers(self, info, *args, **kwargs):
-        answers = self.answer_set.all()
+        hash_id = kwargs.pop('hash_id')
+        if kwargs.pop('only_local'):
+            memberships = User.objects.get(hash_id=hash_id).group_memberships.all()
+            answers = self.answer_set.filter(created_by__group_memberships__in=memberships)
+        else:
+            answers = self.answer_set.all()
         for key, value in kwargs.items():
             answers = filter(lambda x: getattr(x, key) == value, answers)
         return answers
+
+    def resolve_answers_count(self, info, *args, **kwargs):
+        hash_id = kwargs.pop('hash_id')
+        if kwargs.pop('only_local'):
+            memberships = User.objects.get(hash_id=hash_id).group_memberships.all()
+            answers = self.answer_set.filter(created_by__group_memberships__in=memberships)
+        else:
+            answers = self.answer_set.all()
+        for key, value in kwargs.items():
+            answers = filter(lambda x: getattr(x, key) == value, answers)
+        return len(answers)
 
 
 class Query(graphene.ObjectType):
     questions = graphene.List(
         QuestionNode,
-        question=Argument(String)
+        only_local=Argument(Boolean, required=True),
+        hash_id=Argument(String, required=True),
+        question=Argument(String),
+        answers_question=Argument(Int),
     )
     question = graphene.Field(
         QuestionNode,
-        question_id=Argument(Int, required=True)
+        question_id=Argument(Int, required=True),
+    )
+    user_questions = graphene.List(
+        QuestionNode,
+        hash_id=Argument(String, required=True)
     )
 
     def resolve_question(self, info, question_id):
@@ -73,7 +109,23 @@ class Query(graphene.ObjectType):
             return None
 
     def resolve_questions(self, info, **kwargs):
-        return Question.objects.filter(content__icontains=kwargs.get('question', ''))
+        memberships = User.objects.get(hash_id=kwargs['hash_id']).group_memberships.all()
+        if kwargs.get('question', None):
+            filters = {'content__icontains': kwargs.get('question', '')}
+        else:
+            filters = {}
+        if kwargs['only_local']:
+            filters['created_by__group_memberships__in'] = memberships
+        questions = Question.objects.filter(**filters)
+        if kwargs.get('answers_question'):
+            for question in questions.distinct():
+                if question.answer_set.count() < kwargs.get('answers_question'):
+                    yield question
+        else:
+            return questions.distinct()
+
+    def resolve_user_questions(self, info, **kwargs):
+        return Question.objects.filter(created_by__hash_id=kwargs['hash_id'])
 
 
 class CreateQuestion(graphene.Mutation):
@@ -108,7 +160,15 @@ class CreateRating(graphene.Mutation):
     def mutate(self, info, *arg, **kwargs):
         user = User.objects.get(hash_id=kwargs['hash_id'])
         answer = Answer.objects.get(id=kwargs['answer_id'])
-        rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        if kwargs['rating_type'] is Rating.IS_HELPFUL:
+            rating = Rating.objects.get_or_create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
+        else:
+            try:
+                rating = Rating.objects.get(answer=answer, created_by=user, rating_type=kwargs['rating_type'])
+                rating.rate = kwargs['rate']
+                rating.save()
+            except Rating.DoesNotExist:
+                rating = Rating.objects.create(answer=answer, created_by=user, rate=kwargs['rate'], rating_type=kwargs['rating_type'])
         return CreateRating(rating=rating)
 
 
@@ -118,32 +178,49 @@ class CreateAnswer(graphene.Mutation):
         url = graphene.String(required=True)
         question_id = graphene.Int(required=True)
         hash_id = graphene.String(required=True)
+        is_long = graphene.Boolean(required=True)
+        is_complex = graphene.Boolean(required=True)
+        is_science = graphene.Boolean(required=True)
 
     answer = graphene.Field(AnswerNode)
 
     def mutate(self, info, *arg, **kwargs):
-        user = User.objects.get(hash_id=kwargs['hash_id'])
-        question = Question.objects.get(id=kwargs['question_id'])
+        user = User.objects.get(hash_id=kwargs.pop('hash_id'))
+        question = Question.objects.get(id=kwargs.pop('question_id'))
         sender_email = question.created_by.email
-        answer = Answer.objects.create(title=kwargs['title'], url=kwargs['url'], question=question, created_by=user)
-
-        from django.core.mail import send_mail
-
-        send_mail(
-            'You\'ve got your answer!!',
-            'Hello, please, check your question: ' + str(kwargs['question_id']) + ' a new answer is awaiting',
-            'adka94@op.pl',
-            [sender_email],
-            fail_silently=False,
-        )
-
+        answer = Answer.objects.create(title=kwargs.pop('title'), url=kwargs.pop('url'), question=question, created_by=user)
+        for key, value in kwargs.items():
+            key = key.replace('_', '-')
+            Rating.objects.create(rating_type=key, rate=value, answer=answer, created_by=user)
         return CreateAnswer(answer=answer)
+
+
+class BroadcastHelpEmail(graphene.Mutation):
+    class Arguments:
+        hash_id = graphene.String(required=True)
+        question_id = graphene.Int(required=True)
+
+    status = graphene.String()
+
+    def mutate(self, info, *arg, **kwargs):
+        question = Question.objects.get(id=kwargs['question_id'])
+        emails = User.objects.filter(~Q(hash_id=question.created_by.hash_id)).values_list('email', flat=True)
+        send_mail(
+            'Please, help !!',
+            f'Hello, please, we need your help with answering this question: {question.id}',
+            'adka94@op.pl',
+            [emails],
+            fail_silently=False,
+            )
+
+        return BroadcastHelpEmail(status="That is perfect!")
 
 
 class Mutation(graphene.ObjectType):
     create_question = CreateQuestion.Field()
     create_rating = CreateRating.Field()
     create_answer = CreateAnswer.Field()
+    broadcast_help_email = BroadcastHelpEmail.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

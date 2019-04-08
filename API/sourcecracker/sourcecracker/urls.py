@@ -18,10 +18,11 @@ from django.urls import path
 from django.conf.urls import url
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
-from questions.views import redirect_counter
+from questions.views import redirect_counter, invite_to_group
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^graphql', csrf_exempt(GraphQLView.as_view(graphiql=True))),
-    path('redirect/<answer_id>/<user_hash>', redirect_counter, name='redirect')
+    path('redirect/<answer_id>/<user_hash>', redirect_counter, name='redirect'),
+    path('invite/<hash_id>/<group_id>', invite_to_group, name='invite')
 ]
